@@ -35,6 +35,16 @@ def execute_command(command, comm, self):
         mdi.MDI_Send(self.natoms, 1, mdi.MDI_INT, comm)
     elif command == "<COORDS":
         mdi.MDI_Send(self.coords, 3 * self.natoms, mdi.MDI_DOUBLE, comm)
+    elif command == "<FORCES_B":
+        if use_numpy:
+            # Create NumPy byte array
+            double_size = np.dtype(np.float64).itemsize
+            forces_tobytes = self.forces.tobytes()
+            forces_bytes = np.frombuffer(forces_tobytes,dtype='byte')
+
+            mdi.MDI_Send(forces_bytes, 3 * self.natoms * double_size, mdi.MDI_BYTE, comm)
+        else:
+            mdi.MDI_Send(self.forces, 3 * self.natoms, mdi.MDI_DOUBLE, comm)
     elif command == "<FORCES":
         mdi.MDI_Send(self.forces, 3 * self.natoms, mdi.MDI_DOUBLE, comm)
     else:
@@ -82,6 +92,7 @@ class MDIEngine:
         mdi.MDI_Register_Command("@DEFAULT","<NATOMS")
         mdi.MDI_Register_Command("@DEFAULT","<COORDS")
         mdi.MDI_Register_Command("@DEFAULT","<FORCES")
+        mdi.MDI_Register_Command("@DEFAULT","<FORCES_B")
         mdi.MDI_Register_Node("@FORCES")
         mdi.MDI_Register_Command("@FORCES","EXIT")
         mdi.MDI_Register_Command("@FORCES","<FORCES")
