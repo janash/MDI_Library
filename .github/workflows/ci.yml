@@ -183,7 +183,7 @@ jobs:
           make VERBOSE=1
 
       - name: Run valgrind tests
-        if: ${{ matrix.platform == 'ubuntu-18.04' }}
+        if: ${{ matrix.platform == 'ubuntu-18.04' && ( success() || failure() ) }}
         run: |
           source env.source
           cat env.source
