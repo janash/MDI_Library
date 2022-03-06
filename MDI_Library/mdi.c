@@ -1169,8 +1169,6 @@ int MDI_Check_command_exists(const char* node_name, const char* command_name, MD
       if ( this_code->intra_rank != 0 ) { return 0; }
     }
   }
-  *flag = 1;
-  return 0;
 
   // confirm that the node_name size is not greater than MDI_COMMAND_LENGTH
   if ( strlen(node_name) > COMMAND_LENGTH ) {
@@ -1185,6 +1183,8 @@ int MDI_Check_command_exists(const char* node_name, const char* command_name, MD
   }
 
   vector* node_vec = get_node_vector(comm);
+  *flag = 1;
+  return 0;
 
   if ( this_code->intra_rank == 0 ) {
     // find the node
