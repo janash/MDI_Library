@@ -41,10 +41,10 @@ def code_for_plugin_instance(mpi_comm, mdi_comm, class_object):
 
     # Confirm that the <NATOMS command is supported
     supported = mdi.MDI_Check_command_exists("@DEFAULT", "<NATOMS", mdi_comm)
-    #if use_mpi4py:
-    #    supported = mpi_comm.bcast(supported, root=0)
-    #if not supported:
-    #    raise Exception("The <NATOMS command is not supported by this plugin.")
+    if use_mpi4py:
+        supported = mpi_comm.bcast(supported, root=0)
+    if not supported:
+        raise Exception("The <NATOMS command is not supported by this plugin.")
 
     # Determine the number of atoms
     mdi.MDI_Send_Command("<NATOMS", mdi_comm)
