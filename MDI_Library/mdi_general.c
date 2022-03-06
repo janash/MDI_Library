@@ -816,10 +816,10 @@ int register_callback(vector* node_vec, const char* node_name, const char* callb
  */
 int send_command_list(MDI_Comm comm) {
   code* this_code = get_code(current_code);
-  if ( this_code->intra_rank != 0 ) {
-    mdi_error("Attempting to send command information from the incorrect rank");
-    return 1;
-  }
+  //if ( this_code->intra_rank != 0 ) {
+  //  mdi_error("Attempting to send command information from the incorrect rank");
+  //  return 1;
+  //}
   int ncommands = 0;
   int nnodes = (int)this_code->nodes->size;
   int inode, icommand;
@@ -888,10 +888,10 @@ int send_command_list(MDI_Comm comm) {
  */
 int send_callback_list(MDI_Comm comm) {
   code* this_code = get_code(current_code);
-  if ( this_code->intra_rank != 0 ) {
-    mdi_error("Attempting to send callback information from the incorrect rank");
-    return 1;
-  }
+  //if ( this_code->intra_rank != 0 ) {
+  //  mdi_error("Attempting to send callback information from the incorrect rank");
+  //  return 1;
+  //}
   int ncallbacks = 0;
   int nnodes = (int)this_code->nodes->size;
   int inode, icallback;
@@ -964,10 +964,10 @@ int send_callback_list(MDI_Comm comm) {
  */
 int send_node_list(MDI_Comm comm) {
   code* this_code = get_code(current_code);
-  if ( this_code->intra_rank != 0 ) {
-    mdi_error("Attempting to send node information from the incorrect rank");
-    return 1;
-  }
+  //if ( this_code->intra_rank != 0 ) {
+  //  mdi_error("Attempting to send node information from the incorrect rank");
+  //  return 1;
+  //}
   int nnodes = (int)this_code->nodes->size;
   int inode;
   int stride = MDI_COMMAND_LENGTH + 1;
@@ -1009,10 +1009,10 @@ int send_node_list(MDI_Comm comm) {
  */
 int send_ncommands(MDI_Comm comm) {
   code* this_code = get_code(current_code);
-  if ( this_code->intra_rank != 0 ) {
-    mdi_error("Attempting to send command information from the incorrect rank");
-    return 1;
-  }
+  //if ( this_code->intra_rank != 0 ) {
+  //  mdi_error("Attempting to send command information from the incorrect rank");
+  //  return 1;
+  //}
   int ncommands = 0;
   int nnodes = (int)this_code->nodes->size;
   int inode;
@@ -1039,10 +1039,10 @@ int send_ncommands(MDI_Comm comm) {
  */
 int send_ncallbacks(MDI_Comm comm) {
   code* this_code = get_code(current_code);
-  if ( this_code->intra_rank != 0 ) {
-    mdi_error("Attempting to send callback information from the incorrect rank");
-    return 1;
-  }
+  //if ( this_code->intra_rank != 0 ) {
+  //  mdi_error("Attempting to send callback information from the incorrect rank");
+  //  return 1;
+  //}
   int ncallbacks = 0;
   int nnodes = (int)this_code->nodes->size;
   int inode;
@@ -1069,10 +1069,10 @@ int send_ncallbacks(MDI_Comm comm) {
  */
 int send_nnodes(MDI_Comm comm) {
   code* this_code = get_code(current_code);
-  if ( this_code->intra_rank != 0 ) {
-    mdi_error("Attempting to send callback information from the incorrect rank");
-    return 1;
-  }
+  //if ( this_code->intra_rank != 0 ) {
+  //  mdi_error("Attempting to send callback information from the incorrect rank");
+  //  return 1;
+  //}
   int nnodes = (int)this_code->nodes->size;
   int ret = general_send( &nnodes, 1, MDI_INT, comm );
   return ret;
@@ -1088,6 +1088,8 @@ int send_nnodes(MDI_Comm comm) {
  *                   MDI communicator associated with the connection to the sending code.
  */
 int get_node_info(MDI_Comm comm) {
+  code* this_code = get_code(current_code);
+
   size_t stride = MDI_COMMAND_LENGTH + 1;
   communicator* this = get_communicator(current_code, comm);
   char* current_node = malloc( MDI_COMMAND_LENGTH * sizeof(char) );
@@ -1104,39 +1106,41 @@ int get_node_info(MDI_Comm comm) {
   MDI_Send_Command("<NODES",comm);
   MDI_Recv(node_list, (int)(nnodes * stride), MDI_CHAR, comm);
 
-  // register the nodes
   int inode;
   int ichar;
-  for (inode = 0; inode < nnodes; inode++) {
-    // find the end of the node name
-    char* name_start = &node_list[ inode * stride ];
-    char* name_end = strchr( name_start, ' ' );
-    int name_length;
-    if (name_end == NULL) {
-      name_length = MDI_COMMAND_LENGTH;
-    }
-    else {
-      name_length = (int)(name_end - name_start);
-    }
-    if ( name_length >= MDI_COMMAND_LENGTH ) {
-      mdi_error("Error obtaining node information: could not parse node name");
-      return 1;
-    }
+  if ( this_code->intra_rank == 0 ) {
+    // register the nodes
+    for (inode = 0; inode < nnodes; inode++) {
+      // find the end of the node name
+      char* name_start = &node_list[ inode * stride ];
+      char* name_end = strchr( name_start, ' ' );
+      int name_length;
+      if (name_end == NULL) {
+        name_length = MDI_COMMAND_LENGTH;
+      }
+      else {
+        name_length = (int)(name_end - name_start);
+      }
+      if ( name_length >= MDI_COMMAND_LENGTH ) {
+        mdi_error("Error obtaining node information: could not parse node name");
+        return 1;
+      }
 
-    // construct the name of the node
-    char* node_name = malloc( MDI_COMMAND_LENGTH * sizeof(char) );
-    for (ichar = 0; ichar < name_length; ichar++) {
-      node_name[ichar] = name_start[ichar];
-    }
-    for (ichar = name_length; ichar < MDI_COMMAND_LENGTH; ichar++) {
-      node_name[ichar] = '\0';
-    }
+      // construct the name of the node
+      char* node_name = malloc( MDI_COMMAND_LENGTH * sizeof(char) );
+      for (ichar = 0; ichar < name_length; ichar++) {
+        node_name[ichar] = name_start[ichar];
+      }
+      for (ichar = name_length; ichar < MDI_COMMAND_LENGTH; ichar++) {
+        node_name[ichar] = '\0';
+      }
 
-    // register this node
-    register_node(this->nodes, node_name);
+      // register this node
+      register_node(this->nodes, node_name);
 
-    // free the memory for the node name
-    free( node_name );
+      // free the memory for the node name
+      free( node_name );
+    }
   }
 
   // get the number of commands
@@ -1150,56 +1154,59 @@ int get_node_info(MDI_Comm comm) {
   MDI_Send_Command("<COMMANDS",comm);
   MDI_Recv(commands, count, MDI_CHAR, comm);
 
-  // register the commands
   int node_flag = 1;
-  for (inode = 0; inode < nnodes + ncommands; inode++) {
-    // find the end of the name
-    char* name_start = &commands[ inode * stride ];
-    char* name_end = strchr( name_start, ' ' );
-    int name_length;
-    if (name_end == NULL) {
-      name_length = MDI_COMMAND_LENGTH;
-    }
-    else {
-      name_length = (int)(name_end - name_start);
-    }
-    if ( name_length >= MDI_COMMAND_LENGTH ) {
-      mdi_error("Error obtaining node information: could not parse command name");
-      return 1;
+  if ( this_code->intra_rank == 0 ) {
+    // register the commands
+    for (inode = 0; inode < nnodes + ncommands; inode++) {
+      // find the end of the name
+      char* name_start = &commands[ inode * stride ];
+      char* name_end = strchr( name_start, ' ' );
+      int name_length;
+      if (name_end == NULL) {
+        name_length = MDI_COMMAND_LENGTH;
+      }
+      else {
+        name_length = (int)(name_end - name_start);
+      }
+      if ( name_length >= MDI_COMMAND_LENGTH ) {
+        mdi_error("Error obtaining node information: could not parse command name");
+        return 1;
+      }
+
+      // construct the name of the command
+      char* command_name = malloc( MDI_COMMAND_LENGTH * sizeof(char) );
+      for (ichar = 0; ichar < name_length; ichar++) {
+        command_name[ichar] = name_start[ichar];
+      }
+      for (ichar = name_length; ichar < MDI_COMMAND_LENGTH; ichar++) {
+        command_name[ichar] = '\0';
+      }
+
+      if ( node_flag == 1 ) { // node
+        // store the name of the current node
+        snprintf(current_node, strlen(command_name)+1, "%s", command_name);
+      }
+      else { // command
+        // register this command
+        register_command(this->nodes, current_node, command_name);
+      }
+
+      // determine whether the next name is for a node or a command
+      if ( name_start[stride - 1] == ';' ) {
+        node_flag = 1;
+      }
+      else if ( name_start[stride - 1] == ',' ) {
+        node_flag = 0;
+      }
+      else {
+        mdi_error("Error obtaining node information: could not parse delimiter");
+        return 1;
+      }
+
+      // free the memory for the node name
+      free( command_name );
     }
 
-    // construct the name of the command
-    char* command_name = malloc( MDI_COMMAND_LENGTH * sizeof(char) );
-    for (ichar = 0; ichar < name_length; ichar++) {
-      command_name[ichar] = name_start[ichar];
-    }
-    for (ichar = name_length; ichar < MDI_COMMAND_LENGTH; ichar++) {
-      command_name[ichar] = '\0';
-    }
-
-    if ( node_flag == 1 ) { // node
-      // store the name of the current node
-      snprintf(current_node, strlen(command_name)+1, "%s", command_name);
-    }
-    else { // command
-      // register this command
-      register_command(this->nodes, current_node, command_name);
-    }
-
-    // determine whether the next name is for a node or a command
-    if ( name_start[stride - 1] == ';' ) {
-      node_flag = 1;
-    }
-    else if ( name_start[stride - 1] == ',' ) {
-      node_flag = 0;
-    }
-    else {
-      mdi_error("Error obtaining node information: could not parse delimiter");
-      return 1;
-    }
-
-    // free the memory for the node name
-    free( command_name );
   }
 
 
@@ -1215,57 +1222,59 @@ int get_node_info(MDI_Comm comm) {
   MDI_Recv(callbacks, count, MDI_CHAR, comm);
   //printf("~~~CALLBACKS: %d %s\n",ncallbacks,callbacks);
 
-  // register the callbacks
-  node_flag = 1;
-  for (inode = 0; inode < nnodes + ncallbacks; inode++) {
-    // find the end of the name
-    char* name_start = &callbacks[ inode * stride ];
-    char* name_end = strchr( name_start, ' ' );
-    int name_length;
-    if (name_end == NULL) {
-      name_length = MDI_COMMAND_LENGTH;
-    }
-    else {
-      name_length = (int)(name_end - name_start);
-    }
-    if ( name_length >= MDI_COMMAND_LENGTH ) {
-      mdi_error("Error obtaining node information: could not parse callback name");
-      return 1;
-    }
+  if ( this_code->intra_rank == 0 ) {
+    // register the callbacks
+    node_flag = 1;
+    for (inode = 0; inode < nnodes + ncallbacks; inode++) {
+      // find the end of the name
+      char* name_start = &callbacks[ inode * stride ];
+      char* name_end = strchr( name_start, ' ' );
+      int name_length;
+      if (name_end == NULL) {
+        name_length = MDI_COMMAND_LENGTH;
+      }
+      else {
+        name_length = (int)(name_end - name_start);
+      }
+      if ( name_length >= MDI_COMMAND_LENGTH ) {
+        mdi_error("Error obtaining node information: could not parse callback name");
+        return 1;
+      }
 
-    // construct the name
-    char* callback_name = malloc( MDI_COMMAND_LENGTH * sizeof(char) );
-    for (ichar = 0; ichar < name_length; ichar++) {
-      callback_name[ichar] = name_start[ichar];
-    }
-    for (ichar = name_length; ichar < MDI_COMMAND_LENGTH; ichar++) {
-      callback_name[ichar] = '\0';
-    }
-    //printf("DRIVER CALLBACK: %d %d %s\n",inode,name_length,callback_name);
+      // construct the name
+      char* callback_name = malloc( MDI_COMMAND_LENGTH * sizeof(char) );
+      for (ichar = 0; ichar < name_length; ichar++) {
+        callback_name[ichar] = name_start[ichar];
+      }
+      for (ichar = name_length; ichar < MDI_COMMAND_LENGTH; ichar++) {
+        callback_name[ichar] = '\0';
+      }
+      //printf("DRIVER CALLBACK: %d %d %s\n",inode,name_length,callback_name);
 
-    if ( node_flag == 1 ) { // node
-      // store the name of the current node
-      snprintf(current_node, strlen(callback_name)+1, "%s", callback_name);
-    }
-    else { // callback
-      // register this callback
-      register_callback(this->nodes, current_node, callback_name);
-    }
+      if ( node_flag == 1 ) { // node
+        // store the name of the current node
+        snprintf(current_node, strlen(callback_name)+1, "%s", callback_name);
+      }
+      else { // callback
+        // register this callback
+        register_callback(this->nodes, current_node, callback_name);
+      }
 
-    // determine whether the next name is for a node or a callback
-    if ( name_start[stride - 1] == ';' ) {
-      node_flag = 1;
-    }
-    else if ( name_start[stride - 1] == ',' ) {
-      node_flag = 0;
-    }
-    else {
-      mdi_error("Error obtaining node information: could not parse delimiter");
-      return 1;
-    }
+      // determine whether the next name is for a node or a callback
+      if ( name_start[stride - 1] == ';' ) {
+        node_flag = 1;
+      }
+      else if ( name_start[stride - 1] == ',' ) {
+        node_flag = 0;
+      }
+      else {
+        mdi_error("Error obtaining node information: could not parse delimiter");
+        return 1;
+      }
 
-    // free the memory for the node name
-    free( callback_name );
+      // free the memory for the node name
+      free( callback_name );
+    }
   }
   
   // free the memory

@@ -1133,8 +1133,11 @@ int MDI_Check_command_exists(const char* node_name, const char* command_name, MD
 
   // Only rank 0 should respond to this call
   code* this_code = get_code(current_code);
-  if ( this_code->intra_rank != 0 ) {
-    return 0;
+  communicator* this = get_communicator(current_code, comm);
+  if ( this->method != MDI_LINK ) {
+    if ( this_code->intra_rank != 0 ) {
+      return 0;
+    }
   }
 
   // confirm that the node_name size is not greater than MDI_COMMAND_LENGTH
@@ -1151,21 +1154,23 @@ int MDI_Check_command_exists(const char* node_name, const char* command_name, MD
 
   vector* node_vec = get_node_vector(comm);
 
-  // find the node
-  int node_index = get_node_index(node_vec, node_name);
-  if ( node_index == -1 ) {
-    mdi_error("Could not find the node");
-    return 1;
-  }
-  node* target_node = vector_get(node_vec, node_index);
+  if ( this_code->intra_rank == 0 ) {
+    // find the node
+    int node_index = get_node_index(node_vec, node_name);
+    if ( node_index == -1 ) {
+      mdi_error("Could not find the node");
+      return 1;
+    }
+    node* target_node = vector_get(node_vec, node_index);
 
-  // find the command
-  int command_index = get_command_index(target_node, command_name);
-  if ( command_index == -1 ) {
-    *flag = 0;
-  }
-  else {
-    *flag = 1;
+    // find the command
+    int command_index = get_command_index(target_node, command_name);
+    if ( command_index == -1 ) {
+      *flag = 0;
+    }
+    else {
+      *flag = 1;
+    }
   }
   return 0;
 }
