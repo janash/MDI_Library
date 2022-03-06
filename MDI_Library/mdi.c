@@ -927,10 +927,13 @@ int MDI_Check_node_exists(const char* node_name, MDI_Comm comm, int* flag)
 
   // Except in the case of plugins, only rank 0 should respond to this call
   code* this_code = get_code(current_code);
-  communicator* this = get_communicator(current_code, comm);
-  if ( this->method != MDI_LINK ) {
-    if ( this_code->intra_rank != 0 ) {
-      return 0;
+  if ( comm == MDI_COMM_NULL ) {
+    if ( this_code->intra_rank != 0 ) { return 0; }
+  }
+  else { 
+    communicator* this = get_communicator(current_code, comm);
+    if ( this->method != MDI_LINK ) {
+      if ( this_code->intra_rank != 0 ) { return 0; }
     }
   }
 
@@ -990,14 +993,18 @@ int MDI_Get_nnodes(MDI_Comm comm, int* nnodes)
 
   // Except in the case of plugins, only rank 0 should respond to this call
   code* this_code = get_code(current_code);
-  communicator* this = get_communicator(current_code, comm);
-  if ( this->method != MDI_LINK ) {
-    if ( this_code->intra_rank != 0 ) {
-      return 0;
+  if ( comm == MDI_COMM_NULL ) {
+    if ( this_code->intra_rank != 0 ) { return 0; }
+  }
+  else { 
+    communicator* this = get_communicator(current_code, comm);
+    if ( this->method != MDI_LINK ) {
+      if ( this_code->intra_rank != 0 ) { return 0; }
     }
   }
 
   vector* node_vec = get_node_vector(comm);
+
   if ( this_code->intra_rank == 0 ) {
     *nnodes = (int)node_vec->size;
   }
@@ -1045,10 +1052,13 @@ int MDI_Get_node(int index, MDI_Comm comm, char* name)
 
   // Except in the case of plugins, only rank 0 should respond to this call
   code* this_code = get_code(current_code);
-  communicator* this = get_communicator(current_code, comm);
-  if ( this->method != MDI_LINK ) {
-    if ( this_code->intra_rank != 0 ) {
-      return 0;
+  if ( comm == MDI_COMM_NULL ) {
+    if ( this_code->intra_rank != 0 ) { return 0; }
+  }
+  else { 
+    communicator* this = get_communicator(current_code, comm);
+    if ( this->method != MDI_LINK ) {
+      if ( this_code->intra_rank != 0 ) { return 0; }
     }
   }
 
@@ -1150,10 +1160,13 @@ int MDI_Check_command_exists(const char* node_name, const char* command_name, MD
 
   // Except in the case of plugins, only rank 0 should respond to this call
   code* this_code = get_code(current_code);
-  communicator* this = get_communicator(current_code, comm);
-  if ( this->method != MDI_LINK ) {
-    if ( this_code->intra_rank != 0 ) {
-      return 0;
+  if ( comm == MDI_COMM_NULL ) {
+    if ( this_code->intra_rank != 0 ) { return 0; }
+  }
+  else { 
+    communicator* this = get_communicator(current_code, comm);
+    if ( this->method != MDI_LINK ) {
+      if ( this_code->intra_rank != 0 ) { return 0; }
     }
   }
 
@@ -1234,10 +1247,13 @@ int MDI_Get_ncommands(const char* node_name, MDI_Comm comm, int* ncommands)
 
   // Except in the case of plugins, only rank 0 should respond to this call
   code* this_code = get_code(current_code);
-  communicator* this = get_communicator(current_code, comm);
-  if ( this->method != MDI_LINK ) {
-    if ( this_code->intra_rank != 0 ) {
-      return 0;
+  if ( comm == MDI_COMM_NULL ) {
+    if ( this_code->intra_rank != 0 ) { return 0; }
+  }
+  else { 
+    communicator* this = get_communicator(current_code, comm);
+    if ( this->method != MDI_LINK ) {
+      if ( this_code->intra_rank != 0 ) { return 0; }
     }
   }
 
@@ -1308,10 +1324,13 @@ int MDI_Get_command(const char* node_name, int index, MDI_Comm comm, char* name)
 
   // Except in the case of plugins, only rank 0 should respond to this call
   code* this_code = get_code(current_code);
-  communicator* this = get_communicator(current_code, comm);
-  if ( this->method != MDI_LINK ) {
-    if ( this_code->intra_rank != 0 ) {
-      return 0;
+  if ( comm == MDI_COMM_NULL ) {
+    if ( this_code->intra_rank != 0 ) { return 0; }
+  }
+  else { 
+    communicator* this = get_communicator(current_code, comm);
+    if ( this->method != MDI_LINK ) {
+      if ( this_code->intra_rank != 0 ) { return 0; }
     }
   }
 
@@ -1417,10 +1436,13 @@ int MDI_Check_callback_exists(const char* node_name, const char* callback_name, 
 
   // Except in the case of plugins, only rank 0 should respond to this call
   code* this_code = get_code(current_code);
-  communicator* this = get_communicator(current_code, comm);
-  if ( this->method != MDI_LINK ) {
-    if ( this_code->intra_rank != 0 ) {
-      return 0;
+  if ( comm == MDI_COMM_NULL ) {
+    if ( this_code->intra_rank != 0 ) { return 0; }
+  }
+  else { 
+    communicator* this = get_communicator(current_code, comm);
+    if ( this->method != MDI_LINK ) {
+      if ( this_code->intra_rank != 0 ) { return 0; }
     }
   }
 
@@ -1502,10 +1524,13 @@ int MDI_Get_ncallbacks(const char* node_name, MDI_Comm comm, int* ncallbacks)
 
   // Except in the case of plugins, only rank 0 should respond to this call
   code* this_code = get_code(current_code);
-  communicator* this = get_communicator(current_code, comm);
-  if ( this->method != MDI_LINK ) {
-    if ( this_code->intra_rank != 0 ) {
-      return 0;
+  if ( comm == MDI_COMM_NULL ) {
+    if ( this_code->intra_rank != 0 ) { return 0; }
+  }
+  else { 
+    communicator* this = get_communicator(current_code, comm);
+    if ( this->method != MDI_LINK ) {
+      if ( this_code->intra_rank != 0 ) { return 0; }
     }
   }
 
@@ -1576,10 +1601,13 @@ int MDI_Get_callback(const char* node_name, int index, MDI_Comm comm, char* name
 
   // Except in the case of plugins, only rank 0 should respond to this call
   code* this_code = get_code(current_code);
-  communicator* this = get_communicator(current_code, comm);
-  if ( this->method != MDI_LINK ) {
-    if ( this_code->intra_rank != 0 ) {
-      return 0;
+  if ( comm == MDI_COMM_NULL ) {
+    if ( this_code->intra_rank != 0 ) { return 0; }
+  }
+  else { 
+    communicator* this = get_communicator(current_code, comm);
+    if ( this->method != MDI_LINK ) {
+      if ( this_code->intra_rank != 0 ) { return 0; }
     }
   }
 
