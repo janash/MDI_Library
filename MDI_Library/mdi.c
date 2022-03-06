@@ -1153,7 +1153,6 @@ int MDI_Check_Command_Exists(const char* node_name, const char* command_name, MD
  */
 int MDI_Check_command_exists(const char* node_name, const char* command_name, MDI_Comm comm, int* flag)
 {
-  *flag = 0;
   if ( is_initialized == 0 ) {
     mdi_error("MDI_Check_Command_Exists called but MDI has not been initialized");
     return 1;
@@ -1170,6 +1169,7 @@ int MDI_Check_command_exists(const char* node_name, const char* command_name, MD
       if ( this_code->intra_rank != 0 ) { return 0; }
     }
   }
+  *flag = 0;
 
   // confirm that the node_name size is not greater than MDI_COMMAND_LENGTH
   if ( strlen(node_name) > COMMAND_LENGTH ) {
