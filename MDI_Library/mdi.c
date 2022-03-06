@@ -1169,7 +1169,8 @@ int MDI_Check_command_exists(const char* node_name, const char* command_name, MD
       if ( this_code->intra_rank != 0 ) { return 0; }
     }
   }
-  *flag = 0;
+  *flag = 1;
+  return 0;
 
   // confirm that the node_name size is not greater than MDI_COMMAND_LENGTH
   if ( strlen(node_name) > COMMAND_LENGTH ) {
