@@ -925,10 +925,13 @@ int MDI_Check_node_exists(const char* node_name, MDI_Comm comm, int* flag)
     return 1;
   }
 
-  // Only rank 0 should respond to this call
+  // Except in the case of plugins, only rank 0 should respond to this call
   code* this_code = get_code(current_code);
-  if ( this_code->intra_rank != 0 ) {
-    return 0;
+  communicator* this = get_communicator(current_code, comm);
+  if ( this->method != MDI_LINK ) {
+    if ( this_code->intra_rank != 0 ) {
+      return 0;
+    }
   }
 
   // confirm that the node_name size is not greater than MDI_COMMAND_LENGTH
@@ -938,13 +941,15 @@ int MDI_Check_node_exists(const char* node_name, MDI_Comm comm, int* flag)
   }
   vector* node_vec = get_node_vector(comm);
 
-  // find the node
-  int node_index = get_node_index(node_vec, node_name);
-  if ( node_index == -1 ) {
-    *flag = 0;
-  }
-  else {
-    *flag = 1;
+  if ( this_code->intra_rank == 0 ) {
+    // find the node
+    int node_index = get_node_index(node_vec, node_name);
+    if ( node_index == -1 ) {
+      *flag = 0;
+    }
+    else {
+      *flag = 1;
+    }
   }
   return 0;
 }
@@ -983,14 +988,19 @@ int MDI_Get_nnodes(MDI_Comm comm, int* nnodes)
     return 1;
   }
 
-  // Only rank 0 should respond to this call
+  // Except in the case of plugins, only rank 0 should respond to this call
   code* this_code = get_code(current_code);
-  if ( this_code->intra_rank != 0 ) {
-    return 0;
+  communicator* this = get_communicator(current_code, comm);
+  if ( this->method != MDI_LINK ) {
+    if ( this_code->intra_rank != 0 ) {
+      return 0;
+    }
   }
 
   vector* node_vec = get_node_vector(comm);
-  *nnodes = (int)node_vec->size;
+  if ( this_code->intra_rank == 0 ) {
+    *nnodes = (int)node_vec->size;
+  }
 
   return 0;
 }
@@ -1033,24 +1043,31 @@ int MDI_Get_node(int index, MDI_Comm comm, char* name)
     return 1;
   }
 
-  // Only rank 0 should respond to this call
+  // Except in the case of plugins, only rank 0 should respond to this call
   code* this_code = get_code(current_code);
-  if ( this_code->intra_rank != 0 ) {
-    return 0;
+  communicator* this = get_communicator(current_code, comm);
+  if ( this->method != MDI_LINK ) {
+    if ( this_code->intra_rank != 0 ) {
+      return 0;
+    }
   }
 
   vector* node_vec = get_node_vector(comm);
-  if ( node_vec == NULL ) {
-    mdi_error("MDI_Get_Node unable to find node vector");
-    return 1;
+
+  if ( this_code->intra_rank == 0 ) {
+    if ( node_vec == NULL ) {
+      mdi_error("MDI_Get_Node unable to find node vector");
+      return 1;
+    }
+
+    node* ret_node = vector_get(node_vec, index);
+    if ( ret_node == NULL ) {
+      mdi_error("MDI_Get_Node unable to find node");
+      return 1;
+    }
+    snprintf(name, MDI_NAME_LENGTH, "%s", ret_node->name);
   }
 
-  node* ret_node = vector_get(node_vec, index);
-  if ( ret_node == NULL ) {
-    mdi_error("MDI_Get_Node unable to find node");
-    return 1;
-  }
-  snprintf(name, MDI_NAME_LENGTH, "%s", ret_node->name);
   return 0;
 }
 
@@ -1131,7 +1148,7 @@ int MDI_Check_command_exists(const char* node_name, const char* command_name, MD
     return 1;
   }
 
-  // Only rank 0 should respond to this call
+  // Except in the case of plugins, only rank 0 should respond to this call
   code* this_code = get_code(current_code);
   communicator* this = get_communicator(current_code, comm);
   if ( this->method != MDI_LINK ) {
@@ -1215,10 +1232,13 @@ int MDI_Get_ncommands(const char* node_name, MDI_Comm comm, int* ncommands)
     return 1;
   }
 
-  // Only rank 0 should respond to this call
+  // Except in the case of plugins, only rank 0 should respond to this call
   code* this_code = get_code(current_code);
-  if ( this_code->intra_rank != 0 ) {
-    return 0;
+  communicator* this = get_communicator(current_code, comm);
+  if ( this->method != MDI_LINK ) {
+    if ( this_code->intra_rank != 0 ) {
+      return 0;
+    }
   }
 
   // confirm that the node_name size is not greater than MDI_COMMAND_LENGTH
@@ -1229,15 +1249,18 @@ int MDI_Get_ncommands(const char* node_name, MDI_Comm comm, int* ncommands)
 
   vector* node_vec = get_node_vector(comm);
 
-  // find the node
-  int node_index = get_node_index(node_vec, node_name);
-  if ( node_index == -1 ) {
-    mdi_error("Could not find the node");
-    return 1;
-  }
-  node* target_node = vector_get(node_vec, node_index);
+  if ( this_code->intra_rank == 0 ) {
+    // find the node
+    int node_index = get_node_index(node_vec, node_name);
+    if ( node_index == -1 ) {
+      mdi_error("Could not find the node");
+      return 1;
+    }
+    node* target_node = vector_get(node_vec, node_index);
 
-  *ncommands = (int)target_node->commands->size;
+    *ncommands = (int)target_node->commands->size;
+  }
+
   return 0;
 }
 
@@ -1283,29 +1306,35 @@ int MDI_Get_command(const char* node_name, int index, MDI_Comm comm, char* name)
     return 1;
   }
 
-  // Only rank 0 should respond to this call
+  // Except in the case of plugins, only rank 0 should respond to this call
   code* this_code = get_code(current_code);
-  if ( this_code->intra_rank != 0 ) {
-    return 0;
+  communicator* this = get_communicator(current_code, comm);
+  if ( this->method != MDI_LINK ) {
+    if ( this_code->intra_rank != 0 ) {
+      return 0;
+    }
   }
 
   vector* node_vec = get_node_vector(comm);
 
-  // find the node
-  int node_index = get_node_index(node_vec, node_name);
-  if ( node_index == -1 ) {
-    mdi_error("MDI_Get_Command could not find the requested node");
-    return 1;
-  }
-  node* target_node = vector_get(node_vec, node_index);
+  if ( this_code->intra_rank == 0 ) {
+    // find the node
+    int node_index = get_node_index(node_vec, node_name);
+    if ( node_index == -1 ) {
+      mdi_error("MDI_Get_Command could not find the requested node");
+      return 1;
+    }
+    node* target_node = vector_get(node_vec, node_index);
 
-  if ( target_node->commands->size <= index ) {
-    mdi_error("MDI_Get_Command failed because the command does not exist");
-    return 1;
+    if ( target_node->commands->size <= index ) {
+      mdi_error("MDI_Get_Command failed because the command does not exist");
+      return 1;
+    }
+
+    char* target_command = vector_get( target_node->commands, index );
+    snprintf(name, MDI_NAME_LENGTH, "%s", target_command);
   }
 
-  char* target_command = vector_get( target_node->commands, index );
-  snprintf(name, MDI_NAME_LENGTH, "%s", target_command);
   return 0;
 }
 
@@ -1386,10 +1415,13 @@ int MDI_Check_callback_exists(const char* node_name, const char* callback_name, 
     return 1;
   }
 
-  // Only rank 0 should respond to this call
+  // Except in the case of plugins, only rank 0 should respond to this call
   code* this_code = get_code(current_code);
-  if ( this_code->intra_rank != 0 ) {
-    return 0;
+  communicator* this = get_communicator(current_code, comm);
+  if ( this->method != MDI_LINK ) {
+    if ( this_code->intra_rank != 0 ) {
+      return 0;
+    }
   }
 
   // confirm that the node_name size is not greater than MDI_COMMAND_LENGTH
@@ -1406,22 +1438,25 @@ int MDI_Check_callback_exists(const char* node_name, const char* callback_name, 
 
   vector* node_vec = get_node_vector(comm);
 
-  // find the node
-  int node_index = get_node_index(node_vec, node_name);
-  if ( node_index == -1 ) {
-    mdi_error("Could not find the node");
-    return 4;
-  }
-  node* target_node = vector_get(node_vec, node_index);
+  if ( this_code->intra_rank == 0 ) {
+    // find the node
+    int node_index = get_node_index(node_vec, node_name);
+    if ( node_index == -1 ) {
+      mdi_error("Could not find the node");
+      return 4;
+    }
+    node* target_node = vector_get(node_vec, node_index);
 
-  // find the callback
-  int callback_index = get_callback_index(target_node, callback_name);
-  if ( callback_index == -1 ) {
-    *flag = 0;
+    // find the callback
+    int callback_index = get_callback_index(target_node, callback_name);
+    if ( callback_index == -1 ) {
+      *flag = 0;
+    }
+    else {
+      *flag = 1;
+    }
   }
-  else {
-    *flag = 1;
-  }
+
   return 0;
 }
 
@@ -1465,10 +1500,13 @@ int MDI_Get_ncallbacks(const char* node_name, MDI_Comm comm, int* ncallbacks)
     return 1;
   }
 
-  // Only rank 0 should respond to this call
+  // Except in the case of plugins, only rank 0 should respond to this call
   code* this_code = get_code(current_code);
-  if ( this_code->intra_rank != 0 ) {
-    return 0;
+  communicator* this = get_communicator(current_code, comm);
+  if ( this->method != MDI_LINK ) {
+    if ( this_code->intra_rank != 0 ) {
+      return 0;
+    }
   }
 
   // confirm that the node_name size is not greater than MDI_COMMAND_LENGTH
@@ -1479,15 +1517,18 @@ int MDI_Get_ncallbacks(const char* node_name, MDI_Comm comm, int* ncallbacks)
 
   vector* node_vec = get_node_vector(comm);
 
-  // find the node
-  int node_index = get_node_index(node_vec, node_name);
-  if ( node_index == -1 ) {
-    mdi_error("Could not find the node");
-    return 3;
-  }
-  node* target_node = vector_get(node_vec, node_index);
+  if ( this_code->intra_rank == 0 ) {
+    // find the node
+    int node_index = get_node_index(node_vec, node_name);
+    if ( node_index == -1 ) {
+      mdi_error("Could not find the node");
+      return 3;
+    }
+    node* target_node = vector_get(node_vec, node_index);
 
-  *ncallbacks = (int)target_node->callbacks->size;
+    *ncallbacks = (int)target_node->callbacks->size;
+  }
+
   return 0;
 }
 
@@ -1533,29 +1574,35 @@ int MDI_Get_callback(const char* node_name, int index, MDI_Comm comm, char* name
     return 1;
   }
 
-  // Only rank 0 should respond to this call
+  // Except in the case of plugins, only rank 0 should respond to this call
   code* this_code = get_code(current_code);
-  if ( this_code->intra_rank != 0 ) {
-    return 0;
+  communicator* this = get_communicator(current_code, comm);
+  if ( this->method != MDI_LINK ) {
+    if ( this_code->intra_rank != 0 ) {
+      return 0;
+    }
   }
 
   vector* node_vec = get_node_vector(comm);
 
-  // find the node
-  int node_index = get_node_index(node_vec, node_name);
-  if ( node_index == -1 ) {
-    mdi_error("MDI_Get_Command could not find the requested node");
-    return 2;
-  }
-  node* target_node = vector_get(node_vec, node_index);
+  if ( this_code->intra_rank == 0 ) {
+    // find the node
+    int node_index = get_node_index(node_vec, node_name);
+    if ( node_index == -1 ) {
+      mdi_error("MDI_Get_Command could not find the requested node");
+      return 2;
+    }
+    node* target_node = vector_get(node_vec, node_index);
 
-  if ( target_node->callbacks->size <= index ) {
-    mdi_error("MDI_Get_Command failed because the command does not exist");
-    return 3;
+    if ( target_node->callbacks->size <= index ) {
+      mdi_error("MDI_Get_Command failed because the command does not exist");
+      return 3;
+    }
+
+    char* target_callback = vector_get( target_node->callbacks, index );
+    snprintf(name, MDI_NAME_LENGTH, "%s", target_callback);
   }
 
-  char* target_callback = vector_get( target_node->callbacks, index );
-  snprintf(name, MDI_NAME_LENGTH, "%s", target_callback);
   return 0;
 }
 
