@@ -1153,6 +1153,7 @@ int MDI_Check_Command_Exists(const char* node_name, const char* command_name, MD
  */
 int MDI_Check_command_exists(const char* node_name, const char* command_name, MDI_Comm comm, int* flag)
 {
+  *flag = 0;
   if ( is_initialized == 0 ) {
     mdi_error("MDI_Check_Command_Exists called but MDI has not been initialized");
     return 1;
