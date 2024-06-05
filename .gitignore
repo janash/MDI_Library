@@ -59,3 +59,19 @@ dkms.conf
 
 # pip
 *.egg-info
+
+__pycache__/
+
+# sphinx stuff
+*/_build/ 
+
+*/html/
+
+*/_tags/
+
+sphinx-docs/api/mdi_standard/
+
+sphinx-docs/user_guide/mdi_ecosystem/reports
+
+
+
