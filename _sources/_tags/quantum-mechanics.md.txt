@@ -1,3 +1,4 @@
+(sphx_tag_quantum-mechanics)=
 # MDI Standard Tags: Quantum Mechanics
 
 ```{toctree}

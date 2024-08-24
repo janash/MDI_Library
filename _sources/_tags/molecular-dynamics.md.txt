@@ -1,3 +1,4 @@
+(sphx_tag_molecular-dynamics)=
 # MDI Standard Tags: Molecular Dynamics
 
 ```{toctree}

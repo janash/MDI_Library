@@ -1,3 +1,4 @@
+(sphx_tag_dft)=
 # MDI Standard Tags: DFT
 
 ```{toctree}

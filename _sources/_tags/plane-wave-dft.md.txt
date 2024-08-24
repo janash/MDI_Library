@@ -1,3 +1,4 @@
+(sphx_tag_plane-wave-dft)=
 # MDI Standard Tags: Plane Wave DFT
 
 ```{toctree}

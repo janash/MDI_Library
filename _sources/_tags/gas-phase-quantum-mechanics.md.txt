@@ -1,3 +1,4 @@
+(sphx_tag_gas-phase-quantum-mechanics)=
 # MDI Standard Tags: Gas Phase Quantum Mechanics
 
 ```{toctree}
