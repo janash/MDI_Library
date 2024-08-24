@@ -8,3 +8,7 @@ LAMMPS:
 Psi4:
   name: Psi4
   mdimechanic_report: https://github.com/MolSSI-MDI/MDI_psi4
+
+QCEngine:
+  name: QCEngine
+  mdimechanic_report: https://github.com/MolSSI-MDI/MDI_QCEngine
