@@ -4,7 +4,7 @@ docker:
 
   build_image:
     - apt-get update
-    - apt-get install -y git cmake libblas-dev liblapack-dev libmpfr-dev libboost-all-dev libeigen3-dev
+    - apt-get install -y git cmake liblapack-dev libeigen3-dev
     - pip install numpy
     - pip install pymdi
     - pip install pydantic
